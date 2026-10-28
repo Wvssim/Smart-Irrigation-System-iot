@@ -22,6 +22,26 @@ Ce système permet de :
 - Conserver un historique complet des mesures
 - Intégrer des capteurs ou systèmes externes via API REST
 
+## Réalisation matérielle
+
+Le prototype a été assemblé, câblé et soudé manuellement autour de trois éléments : un capteur d’humidité du sol, une pompe et une carte BBC micro:bit. Les photos du matériel et la démonstration sont disponibles dans [`assets/`](./assets/).
+
+Le dépôt documente surtout la chaîne logicielle — API, stockage, dashboard et règles de recommandation. Le firmware embarqué de la micro:bit n’est pas inclus dans la version publique ; l’activation physique automatique de la pompe doit donc être adaptée au firmware et au montage utilisés.
+
+## Flux de données
+
+```text
+Capteur d’humidité
+  └─ micro:bit / programme embarqué
+       └─ POST /api/readings
+            ├─ validation par l’API Flask
+            ├─ stockage MongoDB avec horodatage UTC
+            ├─ agrégats latest / moyenne / minimum / maximum
+            └─ dashboard Chart.js + recommandation selon les seuils
+```
+
+Le dashboard interroge l’API pour afficher la dernière mesure, les statistiques et les 50 dernières lectures. La logique d’analyse classe l’état du sol à partir de seuils configurables et produit une recommandation ; elle reste distincte du pilotage matériel de la pompe.
+
 ## Fonctionnalités
 
 - **Supervision en temps réel** : Affichage de l'humidité actuelle, moyenne, minimum et maximum
@@ -44,13 +64,13 @@ Ce système permet de :
 
 ![Pompe d'irrigation automatisée](assets/pompe.jpeg)
 
-**Rôle** : La pompe d'irrigation est l'actionneur du système. Elle reçoit les commandes de contrôle du serveur et active ou désactive l'irrigation en fonction des recommandations du système d'analyse basé sur les seuils configurés.
+**Rôle** : La pompe constitue l’actionneur du prototype. La version publique de l’API calcule une recommandation à partir des seuils ; le pilotage électrique effectif dépend du programme embarqué utilisé avec la micro:bit.
 
 ### 3. Carte BBC Microbit
 
 ![Carte de développement BBC Microbit](assets/BBC_microbit.png)
 
-**Rôle** : La carte BBC Microbit est le microcontrôleur embarqué qui gère l'acquisition des données du capteur, le contrôle de la pompe et la communication réseau avec le serveur API. Elle constitue le cerveau du système IoT côté matériel.
+**Rôle** : La carte BBC micro:bit sert de microcontrôleur côté matériel pour l’acquisition et le montage du prototype. Le firmware n’étant pas inclus dans ce dépôt, l’envoi des mesures et le pilotage de la pompe doivent être implémentés ou adaptés séparément.
 
 ### 4. Base de Données MongoDB
 
@@ -432,6 +452,8 @@ db.logic.insert_one({
 - Les mesures expirent après 7 jours (configurable)
 - Serveur de développement Flask (non adapté à la production)
 - Pas de mécanisme d'authentification pour les endpoints API
+- Firmware micro:bit non inclus dans le dépôt public
+- Le backend fournit des recommandations ; l’actionnement physique automatique de la pompe n’est pas démontré par le code publié
 
 ## Déploiement en production
 
@@ -454,4 +476,4 @@ MIT License - Libre d'utilisation à des fins personnelles, éducatives et comme
 ---
 
 **Auteur** : Wassim Lazim  
-**Dernière mise à jour** : Mai 2026
+**Dernière mise à jour** : Octobre 2026
